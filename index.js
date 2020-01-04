@@ -17,11 +17,11 @@ function SENEC(log, config) {
     this.refreshInterval = config['refreshInterval'] * 1000 || 60000;
 
     this.GridPower = 0;
-    this.GridPowerTest = -320;
     this.SolarPower = 0;
+    this.BatteryLevel = 76;
 
     var GridPowerConsumption = function() {
-        Characteristic.call(this, 'Power to Grid', 'E863F10D-079E-48FF-8F27-9C2605A29F52');
+        Characteristic.call(this, 'Power to Grid', '7C89C7F0-6A17-4693-98FE-D015481CC082');
         this.setProps({
             format: Characteristic.Formats.FLOAT,
             unit: 'watts',
@@ -35,7 +35,7 @@ function SENEC(log, config) {
     inherits(GridPowerConsumption, Characteristic);
 
     var SolarPower = function() {
-        Characteristic.call(this, 'Power from Solar', 'E863F10C-079E-48FF-8F27-9C2605A29F52');
+        Characteristic.call(this, 'Power from Solar', '20576730-5BAF-4EA4-87DB-6CA806AFA1E2');
         this.setProps({
             format: Characteristic.Formats.FLOAT,
             unit: 'watts',
@@ -60,6 +60,8 @@ function SENEC(log, config) {
     this.service = new PowerMeterService(this.name, null);
     this.service.getCharacteristic(GridPowerConsumption).on('get', this.getGridPowerConsumption.bind(this));
     this.service.getCharacteristic(SolarPower).on('get', this.getSolarPower.bind(this));
+    this.service.getCharacteristic(Characteristic.BatteryLevel).on('get', this.getBatteryLevelCharacteristic.bind(this)); 
+
 
 
 	function getReq(callback) {
@@ -67,6 +69,7 @@ function SENEC(log, config) {
 	    json: {
 	       ENERGY: {
 	          "GUI_INVERTER_POWER": "",
+              "GUI_BAT_DATA_FUEL_CHARGE": "",
 	          "GUI_GRID_POW": ""
 	        }
 	    }
@@ -107,9 +110,11 @@ function SENEC(log, config) {
 
 			self.GridPower = parseFloat(data["GUI_GRID_POW"] * -1);
 	    	self.SolarPower = parseFloat(data["GUI_INVERTER_POWER"] / 1000 );
+            self.BatteryLevel = parseInt(data["GUI_BAT_DATA_FUEL_CHARGE"]);
 
 	    	self.service.getCharacteristic(GridPowerConsumption).setValue(self.GridPower, undefined, undefined);
 	    	self.service.getCharacteristic(SolarPower).setValue(self.SolarPower, undefined, undefined);
+            self.service.getCharacteristic(Characteristic.BatteryLevel).setValue(this.BatteryLevel, undefined, undefined);
 		}
 	);
 
@@ -122,6 +127,7 @@ function SENEC(log, config) {
 
 		    	self.service.updateCharacteristic(GridPowerConsumption, self.GridPower);
 		    	self.service.updateCharacteristic(SolarPower, self.SolarPower);
+                self.service.updateCharacteristic(Characteristic.BatteryLevel, self.BatteryLevel);
 			}
 	);
 	}, this.refreshInterval);
@@ -134,6 +140,10 @@ SENEC.prototype.getGridPowerConsumption = function (callback) {
 
 SENEC.prototype.getSolarPower = function (callback) {
     callback(null, this.SolarPower);
+};
+
+SENEC.prototype.getBatteryLevelCharacteristic = function (callback) {
+    callback(null, this.BatteryLevel);
 };
 
 SENEC.prototype.getServices = function () {
