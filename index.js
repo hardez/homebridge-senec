@@ -1,207 +1,143 @@
-const inherits = require("util").inherits,
-var Service, Characteristic, Accessory
+//'use strict';
+var inherits = require('util').inherits;
+var request = require('request');
+var Service, Characteristic;
 
-module.exports = function(homebridge) {
-	Service = homebridge.hap.Service;
-	Characteristic = homebridge.hap.Characteristic;
-	Accessory = homebridge.hap.Accessory;
-	homebridge.registerAccessory("homebridge-senec", "SENEC", SENEC);
+module.exports = function (homebridge) {
+    Service = homebridge.hap.Service;
+    Characteristic = homebridge.hap.Characteristic;
+    Accessory = homebridge.hap.Accessory;
+    homebridge.registerAccessory("homebridge-senec", "SENEC", SENEC);
 };
 
 function SENEC(log, config) {
-	this.log = log;
-	this.hostname = config["hostname"];
-    this.refreshInterval = (config['refreshInterval'] * 60000) || 60000;
-	this.debug = config["debug"] || false;
+    this.log = log;
+    this.name = config['name'];
+    this.hostname = config['hostname'];
+    this.refreshInterval = config['refreshInterval'] * 1000 || 60000;
 
-//--------------------
+    this.GridPower = 0;
+    this.GridPowerTest = -320;
+    this.SolarPower = 0;
 
-	Characteristic.GUI_BAT_DATA_POWER = function() {
-		Characteristic.call(this, 'GUI_BAT_DATA_POWER', 'E863F10D-079E-48FF-8F27-9C2605A29F52');
-		this.setProps({
-			format: Characteristic.Formats.FLOAT,
-			unit: 'W',
-			minValue: -32767,
-			maxValue: 32767,
-			minStep: 0.1,
-			perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
-		});
-		this.value = this.getDefaultValue();
-	};
-	inherits(Characteristic.GUI_BAT_DATA_POWER, Characteristic);
-	Characteristic.GUI_BAT_DATA_POWER.UUID = 'E863F10D-079E-48FF-8F27-9C2605A29F52';
+    var GridPowerConsumption = function() {
+        Characteristic.call(this, 'Grid Power', 'E863F10D-079E-48FF-8F27-9C2605A29F52');
+        this.setProps({
+            format: Characteristic.Formats.FLOAT,
+            unit: 'watts',
+            maxValue: 32000,
+            minValue: -32000,
+            minStep: 1,
+            perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
+        });
+        this.value = this.getDefaultValue();
+    };
+    inherits(GridPowerConsumption, Characteristic);
 
-//--------------------
-// Hier muss eine andere Characteristic genutz werden, die Prozent unterstützt
-
-/*	
-	Characteristic.CustomWatts = function() {
-		Characteristic.call(this, 'GUI_BAT_DATA_FUEL_CHARGE', 'E863F10D-079E-48FF-8F27-9C2605A29F52');
-		this.setProps({
-			format: Characteristic.Formats.FLOAT,
-			unit: 'W',
-			minValue: 0,
-			maxValue: 65535,
-			minStep: 0.1,
-			perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
-		});
-		this.value = this.getDefaultValue();
-	};
-	inherits(Characteristic.CustomWatts, Characteristic);
-	Characteristic.CustomWatts.UUID = 'E863F10D-079E-48FF-8F27-9C2605A29F52';
-*/
-
-//--------------------
-
-	Characteristic.GUI_INVERTER_POWER = function() {
-		Characteristic.call(this, 'GUI_INVERTER_POWER', 'E863F10D-079E-48FF-8F27-9C2605A29F52');
-		this.setProps({
-			format: Characteristic.Formats.FLOAT,
-			unit: 'W',
-			minValue: 0,
-			maxValue: 65535,
-			minStep: 0.1,
-			perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
-		});
-		this.value = this.getDefaultValue();
-	};
-	inherits(Characteristic.GUI_INVERTER_POWER, Characteristic);
-	Characteristic.GUI_INVERTER_POWER.UUID = 'E863F10D-079E-48FF-8F27-9C2605A29F52';
-
-//--------------------
-
-	Characteristic.GUI_HOUSE_POW = function() {
-		Characteristic.call(this, 'GUI_HOUSE_POW', 'E863F10D-079E-48FF-8F27-9C2605A29F52');
-		this.setProps({
-			format: Characteristic.Formats.FLOAT,
-			unit: 'W',
-			minValue: -32767,
-			maxValue: 32767,
-			minStep: 0.1,
-			perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
-		});
-		this.value = this.getDefaultValue();
-	};
-	inherits(Characteristic.GUI_HOUSE_POW, Characteristic);
-	Characteristic.GUI_HOUSE_POW.UUID = 'E863F10D-079E-48FF-8F27-9C2605A29F52';
-
-//--------------------
-
-	Characteristic.GUI_GRID_POW = function() {
-		Characteristic.call(this, 'GUI_GRID_POW', 'E863F10D-079E-48FF-8F27-9C2605A29F52');
-		this.setProps({
-			format: Characteristic.Formats.FLOAT,
-			unit: 'W',
-			minValue: -32767,
-			maxValue: 32767,
-			minStep: 0.1,
-			perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
-		});
-		this.value = this.getDefaultValue();
-	};
-	inherits(Characteristic.GUI_GRID_POW, Characteristic);
-	Characteristic.GUI_GRID_POW.UUID = 'E863F10D-079E-48FF-8F27-9C2605A29F52';
-
-//--------------------
-}
-
-SENEC.prototype = {
-
-	identify: function(callback) {
-		this.log("identify");
-		callback();
-	},
-
-	getServices: function() {
-		this.SENEC = new Service.Outlet(this.name);
-
-		this.SENEC.getCharacteristic(Characteristic.On)
-		.on('get',this._getValue.bind(this, "On"))
-		.on('set', this._setValue.bind(this, "On"));
-
-		this.SENEC.getCharacteristic(Characteristic.OutletInUse)
-		.on('get', this._getValue.bind(this, "OutletInUse"));
-
-		this.SENEC.addCharacteristic(Characteristic.CustomWatts);
-		this.SENEC.getCharacteristic(Characteristic.CustomWatts)
-		.on('get', this._getValue.bind(this, "GUI_BAT_DATA_POWER"));
-
-		this.SENEC.addCharacteristic(Characteristic.CustomWatts);
-		this.SENEC.getCharacteristic(Characteristic.CustomWatts)
-		.on('get', this._getValue.bind(this, "GUI_INVERTER_POWER"));
-
-		this.SENEC.addCharacteristic(Characteristic.CustomWatts);
-		this.SENEC.getCharacteristic(Characteristic.CustomWatts)
-		.on('get', this._getValue.bind(this, "GUI_HOUSE_POW"));
-
-		this.SENEC.addCharacteristic(Characteristic.CustomWatts);
-		this.SENEC.getCharacteristic(Characteristic.CustomWatts)
-		.on('get', this._getValue.bind(this, "GUI_GRID_POW"));
-
-        // Obtain the values
-        setInterval(function() {
-            try {
-            	// wenn Speicher erreichbar
-            	this.SENEC.getCharacteristic(Characteristic.On).updateValue(1);
-        		this.SENEC.getCharacteristic(Characteristic.OutletInUse).updateValue(1);
-            	
-        		this.SENEC.getCharacteristic(Characteristic.GUI_GRID_POW).updateValue(1);
-        		this.SENEC.getCharacteristic(Characteristic.GUI_HOUSE_POW).updateValue(2);
-				this.SENEC.getCharacteristic(Characteristic.GUI_INVERTER_POWER).updateValue(3);
-				this.SENEC.getCharacteristic(Characteristic.GUI_BAT_DATA_POWER).updateValue(4);
-            	// Hier muss die SENEC Connection eingebaut werden.
+    var SolarPower = function() {
+        Characteristic.call(this, 'Solar Power', 'E863F10C-079E-48FF-8F27-9C2605A29F52');
+        this.setProps({
+            format: Characteristic.Formats.FLOAT,
+            unit: 'watts',
+            maxValue: 32000,
+            minValue: 0,
+            minStep: 1,
+            perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
+        });
+        this.value = this.getDefaultValue();
+    };
+    inherits(SolarPower, Characteristic);
 
 
+    var PowerMeterService = function(displayName, subtype) {
+        Service.call(this, displayName, '00000001-0000-1777-8000-775D67EC4377', subtype);
+        this.addCharacteristic(GridPowerConsumption);
+        this.addOptionalCharacteristic(SolarPower);
+    };
+
+    inherits(PowerMeterService, Service);
+
+    this.service = new PowerMeterService(this.name, null);
+    this.service.getCharacteristic(GridPowerConsumption).on('get', this.getGridPowerConsumption.bind(this));
+    this.service.getCharacteristic(SolarPower).on('get', this.getSolarPower.bind(this));
 
 
-
-
-
-            	/*
-            	//Hier werden die Werte zugewiesen, dass muss in den SENEC Code integriert werden
-
-    			client.readHoldingRegisters(30775, 10, function(err, data) {
-                    // Check if the value is unrealistic (the inverter is not generating)
-                    if(data.buffer.readUInt32BE() > 999999) {
-                        this.SENEC.getCharacteristic(Characteristic.On).updateValue(0);
-                        this.SENEC.getCharacteristic(Characteristic.OutletInUse).updateValue(0);
-                    }
-                    else {
-        				this.SENEC.getCharacteristic(Characteristic.CustomWatts).updateValue(data.buffer.readUInt32BE());
-
-        				this.loggingService.addEntry({time: moment().unix(), power: data.buffer.readUInt32BE()});
-
-        				if(data.buffer.readUInt32BE() > 0) {
-        					this.SENEC.getCharacteristic(Characteristic.On).updateValue(1);
-        					this.SENEC.getCharacteristic(Characteristic.OutletInUse).updateValue(1);
-        				}
-        				else {
-        					this.SENEC.getCharacteristic(Characteristic.On).updateValue(0);
-        					this.SENEC.getCharacteristic(Characteristic.OutletInUse).updateValue(0);
-        				}
-
-                        client.readHoldingRegisters(30977, 10, function(err, data) {this.SENEC.getCharacteristic(Characteristic.CustomAmperes).updateValue(data.buffer.readUInt32BE() / 1000);}.bind(this));
-                        client.readHoldingRegisters(30783, 10, function(err, data) {this.SENEC.getCharacteristic(Characteristic.CustomVolts).updateValue(data.buffer.readUInt32BE() / 100);}.bind(this));
-            			client.readHoldingRegisters(30529, 10, function(err, data) {this.SENEC.getCharacteristic(Characteristic.CustomKilowattHours).updateValue(data.buffer.readUInt32BE() / 1000);}.bind(this));
-                    }
-    			}.bind(this));
-    			*/
-            } catch(err) {
-            	this.log("Failed to connect to the Host", err);
-            }
-		}.bind(this), this.refreshInterval);
-
-//		return [this.SENEC];
-	},
-
-	_getValue: function(CharacteristicName, callback) {
-		if(this.debug) {this.log("GET", CharacteristicName);}
-		callback(null);
-	},
-
-	_setValue: function(CharacteristicName, value, callback) {
-		// This does nothing if the user tries to turn it on / off as we cannot action anything on the device
-		callback(null, true);
+	function getReq(callback) {
+	  request.post('http://senecspeicher.fritz.box/lala.cgi', {
+	    json: {
+	       ENERGY: {
+	          "GUI_INVERTER_POWER": "",
+	          "GUI_GRID_POW": ""
+	        }
+	    }
+	  }, (error, res, body) => {
+	    if (error) {
+	      console.error(error);
+	      return;
+	    }
+	    
+	    var result = {};
+	    for(var attributename in body.ENERGY){
+	        var attributeVal = (body.ENERGY[attributename]).replace("fl_","");
+	        result[attributename] = hex2float(attributeVal);
+	    }
+	    return callback(result);
+	  })
 	}
 
+	function hex2float(hexNum) {
+        var bytes = new Uint8Array(hexNum.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+
+        var bits = (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | (bytes[3]);
+        var sign = ((bits >>> 31) == 0) ? 1.0 : -1.0;
+        var e = ((bits >>> 23) & 0xff);
+        var m = (e == 0) ? (bits & 0x7fffff) << 1 : (bits & 0x7fffff) | 0x800000;
+        var f = sign * m * Math.pow(2, e - 150);
+
+        number = Number(f.toFixed(0));
+
+        return number
+	}
+
+
+	var self = this;
+
+	getReq(
+		function(data){
+
+			self.GridPower = parseFloat(data["GUI_GRID_POW"] * 1);
+	    	self.SolarPower = parseFloat(data["GUI_INVERTER_POWER"] / 1000 );
+
+	    	self.service.getCharacteristic(GridPowerConsumption).setValue(self.GridPower, undefined, undefined);
+	    	self.service.getCharacteristic(SolarPower).setValue(self.SolarPower, undefined, undefined);
+		}
+	);
+
+	setInterval(function() { 
+		getReq(
+			function(data){
+
+				self.GridPower = parseFloat(data["GUI_GRID_POW"] * 1);
+		    	self.SolarPower = parseFloat(data["GUI_INVERTER_POWER"] / 1000 );
+
+		    	self.service.updateCharacteristic(GridPowerConsumption, self.GridPower);
+		    	self.service.updateCharacteristic(SolarPower, self.SolarPower);
+			}
+	);
+	}, this.refreshInterval);
+
+}
+
+SENEC.prototype.getGridPowerConsumption = function (callback) {
+    callback(null, this.GridPower);
 };
+
+SENEC.prototype.getSolarPower = function (callback) {
+    callback(null, this.SolarPower);
+};
+
+SENEC.prototype.getServices = function () {
+    return [this.service];
+};
+
+
