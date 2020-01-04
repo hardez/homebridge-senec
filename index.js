@@ -16,7 +16,7 @@ function SENEC(log, config) {
 
 //--------------------
 
-	Characteristic.CustomWatts = function() {
+	Characteristic.GUI_BAT_DATA_POWER = function() {
 		Characteristic.call(this, 'GUI_BAT_DATA_POWER', 'E863F10D-079E-48FF-8F27-9C2605A29F52');
 		this.setProps({
 			format: Characteristic.Formats.FLOAT,
@@ -28,8 +28,8 @@ function SENEC(log, config) {
 		});
 		this.value = this.getDefaultValue();
 	};
-	inherits(Characteristic.CustomWatts, Characteristic);
-	Characteristic.CustomWatts.UUID = 'E863F10D-079E-48FF-8F27-9C2605A29F52';
+	inherits(Characteristic.GUI_BAT_DATA_POWER, Characteristic);
+	Characteristic.GUI_BAT_DATA_POWER.UUID = 'E863F10D-079E-48FF-8F27-9C2605A29F52';
 
 //--------------------
 // Hier muss eine andere Characteristic genutz werden, die Prozent unterstützt
@@ -53,7 +53,7 @@ function SENEC(log, config) {
 
 //--------------------
 
-	Characteristic.CustomWatts = function() {
+	Characteristic.GUI_INVERTER_POWER = function() {
 		Characteristic.call(this, 'GUI_INVERTER_POWER', 'E863F10D-079E-48FF-8F27-9C2605A29F52');
 		this.setProps({
 			format: Characteristic.Formats.FLOAT,
@@ -65,12 +65,12 @@ function SENEC(log, config) {
 		});
 		this.value = this.getDefaultValue();
 	};
-	inherits(Characteristic.CustomWatts, Characteristic);
-	Characteristic.CustomWatts.UUID = 'E863F10D-079E-48FF-8F27-9C2605A29F52';
+	inherits(Characteristic.GUI_INVERTER_POWER, Characteristic);
+	Characteristic.GUI_INVERTER_POWER.UUID = 'E863F10D-079E-48FF-8F27-9C2605A29F52';
 
 //--------------------
 
-	Characteristic.CustomWatts = function() {
+	Characteristic.GUI_HOUSE_POW = function() {
 		Characteristic.call(this, 'GUI_HOUSE_POW', 'E863F10D-079E-48FF-8F27-9C2605A29F52');
 		this.setProps({
 			format: Characteristic.Formats.FLOAT,
@@ -82,12 +82,12 @@ function SENEC(log, config) {
 		});
 		this.value = this.getDefaultValue();
 	};
-	inherits(Characteristic.CustomWatts, Characteristic);
-	Characteristic.CustomWatts.UUID = 'E863F10D-079E-48FF-8F27-9C2605A29F52';
+	inherits(Characteristic.GUI_HOUSE_POW, Characteristic);
+	Characteristic.GUI_HOUSE_POW.UUID = 'E863F10D-079E-48FF-8F27-9C2605A29F52';
 
 //--------------------
 
-	Characteristic.CustomWatts = function() {
+	Characteristic.GUI_GRID_POW = function() {
 		Characteristic.call(this, 'GUI_GRID_POW', 'E863F10D-079E-48FF-8F27-9C2605A29F52');
 		this.setProps({
 			format: Characteristic.Formats.FLOAT,
@@ -99,8 +99,8 @@ function SENEC(log, config) {
 		});
 		this.value = this.getDefaultValue();
 	};
-	inherits(Characteristic.CustomWatts, Characteristic);
-	Characteristic.CustomWatts.UUID = 'E863F10D-079E-48FF-8F27-9C2605A29F52';
+	inherits(Characteristic.GUI_GRID_POW, Characteristic);
+	Characteristic.GUI_GRID_POW.UUID = 'E863F10D-079E-48FF-8F27-9C2605A29F52';
 
 //--------------------
 }
@@ -141,7 +141,20 @@ SENEC.prototype = {
         // Obtain the values
         setInterval(function() {
             try {
+            	// wenn Speicher erreichbar
+            	this.SENEC.getCharacteristic(Characteristic.On).updateValue(1);
+        		this.SENEC.getCharacteristic(Characteristic.OutletInUse).updateValue(1);
+            	
+        		this.SENEC.getCharacteristic(Characteristic.GUI_GRID_POW).updateValue(1);
+        		this.SENEC.getCharacteristic(Characteristic.GUI_HOUSE_POW).updateValue(2);
+				this.SENEC.getCharacteristic(Characteristic.GUI_INVERTER_POWER).updateValue(3);
+				this.SENEC.getCharacteristic(Characteristic.GUI_BAT_DATA_POWER).updateValue(4);
             	// Hier muss die SENEC Connection eingebaut werden.
+
+
+
+
+
 
 
             	/*
@@ -178,13 +191,8 @@ SENEC.prototype = {
             }
 		}.bind(this), this.refreshInterval);
 
-		return [this.SENEC];
-	}
-
-	let informationService = new Service.AccessoryInformation();
-    informationService
-      .setCharacteristic(Characteristic.Manufacturer, "SENEC")
-      .setCharacteristic(Characteristic.Model, "SENEC Home")
+//		return [this.SENEC];
+	},
 
 	_getValue: function(CharacteristicName, callback) {
 		if(this.debug) {this.log("GET", CharacteristicName);}
