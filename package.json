@@ -22,5 +22,12 @@
   },
   "dependencies": {
     "request": "^2.88.0"
-  }
+  },
+  "homepage": "https://github.com/hardez/homebridge-senec#readme",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "hardez"
 }
