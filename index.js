@@ -1,4 +1,3 @@
-//'use strict';
 var inherits = require('util').inherits;
 var request = require('request');
 var Service, Characteristic;
@@ -6,7 +5,6 @@ var Service, Characteristic;
 module.exports = function (homebridge) {
     Service = homebridge.hap.Service;
     Characteristic = homebridge.hap.Characteristic;
-    Accessory = homebridge.hap.Accessory;
     homebridge.registerAccessory("homebridge-senec", "SENEC", SENEC);
 };
 
@@ -101,7 +99,7 @@ function SENEC(log, config) {
         var m = (e == 0) ? (bits & 0x7fffff) << 1 : (bits & 0x7fffff) | 0x800000;
         var f = sign * m * Math.pow(2, e - 150);
 
-        number = Number(f.toFixed(0));
+        var number = Number(f.toFixed(0));
 
         return number
 	}
