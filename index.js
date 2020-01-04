@@ -63,7 +63,6 @@ function SENEC(log, config) {
 
 	function getReq(callback) {
         try{
-            this.log("updating SENEC Home values");
     	  request.post('http://'+self.hostname+'/lala.cgi', {
     	    json: {
     	       ENERGY: {
@@ -109,7 +108,7 @@ function SENEC(log, config) {
 
 	getReq(
 		function(data){
-
+            self.log("manually updating SENEC Home values");
 			self.GridPower = parseFloat(data["GUI_GRID_POW"] * -1);
 	    	self.SolarPower = parseFloat(data["GUI_INVERTER_POWER"] / 1000 );
             self.BatteryLevel = parseInt(data["GUI_BAT_DATA_FUEL_CHARGE"]);
@@ -123,7 +122,7 @@ function SENEC(log, config) {
 	setInterval(function() { 
 		getReq(
 			function(data){
-
+                self.log("updating SENEC Home values");
 				self.GridPower = parseFloat(data["GUI_GRID_POW"] * -1);
 		    	self.SolarPower = parseFloat(data["GUI_INVERTER_POWER"] / 1000 );
 
