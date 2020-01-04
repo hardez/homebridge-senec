@@ -179,7 +179,12 @@ SENEC.prototype = {
 		}.bind(this), this.refreshInterval);
 
 		return [this.SENEC];
-	},
+	}
+
+	let informationService = new Service.AccessoryInformation();
+    informationService
+      .setCharacteristic(Characteristic.Manufacturer, "SENEC")
+      .setCharacteristic(Characteristic.Model, "SENEC Home")
 
 	_getValue: function(CharacteristicName, callback) {
 		if(this.debug) {this.log("GET", CharacteristicName);}
