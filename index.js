@@ -21,7 +21,7 @@ function SENEC(log, config) {
     this.SolarPower = 0;
 
     var GridPowerConsumption = function() {
-        Characteristic.call(this, 'Grid Power', 'E863F10D-079E-48FF-8F27-9C2605A29F52');
+        Characteristic.call(this, 'Power to Grid', 'E863F10D-079E-48FF-8F27-9C2605A29F52');
         this.setProps({
             format: Characteristic.Formats.FLOAT,
             unit: 'watts',
@@ -35,7 +35,7 @@ function SENEC(log, config) {
     inherits(GridPowerConsumption, Characteristic);
 
     var SolarPower = function() {
-        Characteristic.call(this, 'Solar Power', 'E863F10C-079E-48FF-8F27-9C2605A29F52');
+        Characteristic.call(this, 'Power from Solar', 'E863F10C-079E-48FF-8F27-9C2605A29F52');
         this.setProps({
             format: Characteristic.Formats.FLOAT,
             unit: 'watts',
@@ -105,7 +105,7 @@ function SENEC(log, config) {
 	getReq(
 		function(data){
 
-			self.GridPower = parseFloat(data["GUI_GRID_POW"] * 1);
+			self.GridPower = parseFloat(data["GUI_GRID_POW"] * -1);
 	    	self.SolarPower = parseFloat(data["GUI_INVERTER_POWER"] / 1000 );
 
 	    	self.service.getCharacteristic(GridPowerConsumption).setValue(self.GridPower, undefined, undefined);
@@ -117,7 +117,7 @@ function SENEC(log, config) {
 		getReq(
 			function(data){
 
-				self.GridPower = parseFloat(data["GUI_GRID_POW"] * 1);
+				self.GridPower = parseFloat(data["GUI_GRID_POW"] * -1);
 		    	self.SolarPower = parseFloat(data["GUI_INVERTER_POWER"] / 1000 );
 
 		    	self.service.updateCharacteristic(GridPowerConsumption, self.GridPower);
