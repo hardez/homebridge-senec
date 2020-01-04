@@ -18,7 +18,7 @@ function SENEC(log, config) {
 
     this.GridPower = 0;
     this.SolarPower = 0;
-    this.BatteryLevel = 76;
+    this.BatteryLevel = 0;
 
     var GridPowerConsumption = function() {
         Characteristic.call(this, 'Power to Grid', '7C89C7F0-6A17-4693-98FE-D015481CC082');
@@ -65,7 +65,7 @@ function SENEC(log, config) {
 
 
 	function getReq(callback) {
-	  request.post('http://senecspeicher.fritz.box/lala.cgi', {
+	  request.post('http://'+self.hostname+'/lala.cgi', {
 	    json: {
 	       ENERGY: {
 	          "GUI_INVERTER_POWER": "",
