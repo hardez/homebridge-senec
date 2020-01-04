@@ -25,8 +25,8 @@ function SENEC(log, config) {
         this.setProps({
             format: Characteristic.Formats.FLOAT,
             unit: 'watts',
-            maxValue: 32000,
-            minValue: -32000,
+            maxValue: 10000,
+            minValue: -10000,
             minStep: 1,
             perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
         });
@@ -39,7 +39,7 @@ function SENEC(log, config) {
         this.setProps({
             format: Characteristic.Formats.FLOAT,
             unit: 'watts',
-            maxValue: 32000,
+            maxValue: 10000,
             minValue: 0,
             minStep: 1,
             perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
@@ -65,27 +65,31 @@ function SENEC(log, config) {
 
 
 	function getReq(callback) {
-	  request.post('http://'+self.hostname+'/lala.cgi', {
-	    json: {
-	       ENERGY: {
-	          "GUI_INVERTER_POWER": "",
-              "GUI_BAT_DATA_FUEL_CHARGE": "",
-	          "GUI_GRID_POW": ""
-	        }
-	    }
-	  }, (error, res, body) => {
-	    if (error) {
-	      console.error(error);
-	      return;
-	    }
-	    
-	    var result = {};
-	    for(var attributename in body.ENERGY){
-	        var attributeVal = (body.ENERGY[attributename]).replace("fl_","");
-	        result[attributename] = hex2float(attributeVal);
-	    }
-	    return callback(result);
-	  })
+        try{
+    	  request.post('http://'+self.hostname+'/lala.cgi', {
+    	    json: {
+    	       ENERGY: {
+    	          "GUI_INVERTER_POWER": "",
+                  "GUI_BAT_DATA_FUEL_CHARGE": "",
+    	          "GUI_GRID_POW": ""
+    	        }
+    	    }
+    	  }, (error, res, body) => {
+    	    if (error) {
+    	      console.error(error);
+    	      return;
+    	    }
+    	    
+    	    var result = {};
+    	    for(var attributename in body.ENERGY){
+    	        var attributeVal = (body.ENERGY[attributename]).replace("fl_","");
+    	        result[attributename] = hex2float(attributeVal);
+    	    }
+    	    return callback(result);
+    	  })
+    } catch (error) {
+        this.log(error);
+    }
 	}
 
 	function hex2float(hexNum) {
