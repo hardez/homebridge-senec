@@ -61,9 +61,9 @@ function SENEC(log, config) {
     this.service.getCharacteristic(Characteristic.BatteryLevel).on('get', this.getBatteryLevelCharacteristic.bind(this)); 
 
 
-
 	function getReq(callback) {
         try{
+            this.log("updating SENEC Home values");
     	  request.post('http://'+self.hostname+'/lala.cgi', {
     	    json: {
     	       ENERGY: {
