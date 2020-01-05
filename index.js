@@ -17,11 +17,11 @@ function SENEC(log, config) {
 
     this.GridPower = 0;
     this.SolarPower = 0;
-    this.HousPower = 0;
+    this.HousePower = 0;
     this.BatteryLevel = 0;
 
     var GridPowerConsumption = function() {
-        Characteristic.call(this, 'Power to Grid', '7C89C7F0-6A17-4693-98FE-D015481CC082');
+        Characteristic.call(this, 'Einspeisung', '7C89C7F0-6A17-4693-98FE-D015481CC082');
         this.setProps({
             format: Characteristic.Formats.FLOAT,
             unit: 'watts',
@@ -34,8 +34,8 @@ function SENEC(log, config) {
     };
     inherits(GridPowerConsumption, Characteristic);
 
-    var HousPowerConsumption = function() {
-        Characteristic.call(this, 'House Power Consumption', 'C6A07A7E-ECD2-426B-89D7-E8664CF782C1');
+    var HousePowerConsumption = function() {
+        Characteristic.call(this, 'Hausverbrauch', 'C6A07A7E-ECD2-426B-89D7-E8664CF782C1');
         this.setProps({
             format: Characteristic.Formats.FLOAT,
             unit: 'watts',
@@ -46,10 +46,10 @@ function SENEC(log, config) {
         });
         this.value = this.getDefaultValue();
     };
-    inherits(HousPowerConsumption, Characteristic);
+    inherits(HousePowerConsumption, Characteristic);
 
     var SolarPower = function() {
-        Characteristic.call(this, 'Power from Solar', '20576730-5BAF-4EA4-87DB-6CA806AFA1E2');
+        Characteristic.call(this, 'Solarstrom', '20576730-5BAF-4EA4-87DB-6CA806AFA1E2');
         this.setProps({
             format: Characteristic.Formats.FLOAT,
             unit: 'watts',
@@ -63,7 +63,7 @@ function SENEC(log, config) {
     inherits(SolarPower, Characteristic);
 
     var BatteryPower = function() {
-        Characteristic.call(this, 'Load of Battery', '20576730-5BAF-4EA4-87DB-6CA806AFA1E2');
+        Characteristic.call(this, 'Batterieladung', '20576730-5BAF-4EA4-87DB-6CA806AFA1E2');
         this.setProps({
             format: Characteristic.Formats.FLOAT,
             unit: '%',
@@ -90,7 +90,7 @@ function SENEC(log, config) {
 
     var HouseService = function(displayName, subtype) {
         Service.call(this, displayName, 'D9C50529-BC9A-4324-8E79-E17C85FCAC62', subtype);
-        this.addCharacteristic(HousPowerConsumption);
+        this.addCharacteristic(HousePowerConsumption);
     };
     inherits(HouseService, Service);
 
@@ -100,18 +100,18 @@ function SENEC(log, config) {
     };
     inherits(BatteryService, Service);
 
-    this.gridsvc = new GridService("Grid Power", null);
+    this.gridsvc = new GridService("Einspeisung", null);
     this.gridsvc.getCharacteristic(GridPowerConsumption).on('get', this.getGridPowerConsumption.bind(this));
 
-    this.solarsvc = new SolarService("Solar Power", null);
+    this.solarsvc = new SolarService("Solarstrom", null);
     this.solarsvc.getCharacteristic(SolarPower).on('get', this.getSolarPower.bind(this));
 
-    this.housesvc = new HouseService("House Power", null);
-    this.housesvc.getCharacteristic(HousPowerConsumption).on('get', this.getHousePowerConsumption.bind(this));
+    this.housesvc = new HouseService("Hausverbrauch", null);
+    this.housesvc.getCharacteristic(HousePowerConsumption).on('get', this.getHousePowerConsumption.bind(this));
 
     this.mainservice = new Service.Outlet(this.name);
 
-    this.batterysvc = new BatteryService("Battery Power", null);
+    this.batterysvc = new BatteryService("Batterieladung", null);
     this.batterysvc.getCharacteristic(BatteryPower).on('get', this.getBatteryLevelCharacteristic.bind(this)); 
 
 
@@ -176,11 +176,11 @@ function SENEC(log, config) {
             self.log("manually updating SENEC Home values");
 			self.GridPower = parseFloat(data["GUI_GRID_POW"] * -1);
 	    	self.SolarPower = 0; //parseFloat(data["GUI_INVERTER_POWER"]);
-            self.HousPower = parseFloat(data["GUI_HOUSE_POW"]);
+            self.HousePower = parseFloat(data["GUI_HOUSE_POW"]);
             self.BatteryLevel = parseInt(data["GUI_BAT_DATA_FUEL_CHARGE"]);
 
             self.gridsvc.updateCharacteristic(GridPowerConsumption, self.GridPower);
-            self.housesvc.updateCharacteristic(HousPowerConsumption, self.HousPower);
+            self.housesvc.updateCharacteristic(HousePowerConsumption, self.HousePower);
             self.solarsvc.updateCharacteristic(SolarPower, self.SolarPower);
             self.batterysvc.updateCharacteristic(BatteryPower, self.BatteryLevel);
             
@@ -205,11 +205,11 @@ function SENEC(log, config) {
                 self.log("updating SENEC Home values");
 				self.GridPower = parseFloat(data["GUI_GRID_POW"] * -1);
 		    	self.SolarPower = parseFloat(data["GUI_INVERTER_POWER"]);
-                self.HousPower = parseFloat(data["GUI_HOUSE_POW"]);
+                self.HousePower = parseFloat(data["GUI_HOUSE_POW"]);
                 self.BatteryLevel = parseInt(data["GUI_BAT_DATA_FUEL_CHARGE"]);
 
 		    	self.gridsvc.updateCharacteristic(GridPowerConsumption, self.GridPower);
-                self.housesvc.updateCharacteristic(HousPowerConsumption, self.HousPower);
+                self.housesvc.updateCharacteristic(HousePowerConsumption, self.HousePower);
                 self.solarsvc.updateCharacteristic(SolarPower, self.SolarPower);
                 self.batterysvc.updateCharacteristic(BatteryPower, self.BatteryLevel);
 
@@ -226,7 +226,7 @@ SENEC.prototype.getGridPowerConsumption = function (callback) {
 };
 
 SENEC.prototype.getHousePowerConsumption = function (callback) {
-    callback(null, this.HousPower);
+    callback(null, this.HousePower);
 };
 
 SENEC.prototype.getSolarPower = function (callback) {

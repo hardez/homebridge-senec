@@ -1,6 +1,6 @@
 {
   "name": "homebridge-senec",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "SENEC Battery Plugin for homebridge: https://github.com/nfarina/homebridge",
   "license": "ISC",
   "keywords": [
