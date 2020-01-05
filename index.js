@@ -13,7 +13,7 @@ function SENEC(log, config) {
     this.log = log;
     this.name = config['name'];
     this.hostname = config['hostname'];
-    this.refreshInterval = config['refreshInterval'] * 1000 || 60000;
+    this.refreshInterval = config['refreshInterval'] * 1000 || 30000;
 
     this.GridPower = 0;
     this.SolarPower = 0;
@@ -168,36 +168,6 @@ function SENEC(log, config) {
 
 
 	var self = this;
-
-    /*
-
-	getReq(
-		function(data){
-            self.log("manually updating SENEC Home values");
-			self.GridPower = parseFloat(data["GUI_GRID_POW"] * -1);
-	    	self.SolarPower = 0; //parseFloat(data["GUI_INVERTER_POWER"]);
-            self.HousePower = parseFloat(data["GUI_HOUSE_POW"]);
-            self.BatteryLevel = parseInt(data["GUI_BAT_DATA_FUEL_CHARGE"]);
-
-            self.gridsvc.updateCharacteristic(GridPowerConsumption, self.GridPower);
-            self.housesvc.updateCharacteristic(HousePowerConsumption, self.HousePower);
-            self.solarsvc.updateCharacteristic(SolarPower, self.SolarPower);
-            self.batterysvc.updateCharacteristic(BatteryPower, self.BatteryLevel);
-            
-
-            if (this.SolarPower == 0){
-                this.log("")
-                this.isActiv = 0;
-            } else {
-                this.isActiv = 1;
-            }
-
-            self.mainservice.getCharacteristic(Characteristic.On).updateValue(this.isActiv);
-            self.mainservice.getCharacteristic(Characteristic.OutletInUse).updateValue(this.isActiv);
-		}
-	);
-
-    */
 
 	setInterval(function() { 
 		getReq(
