@@ -172,7 +172,6 @@ function SENEC(log, config) {
 	setInterval(function() { 
 		getReq(
 			function(data){
-                self.log("updating SENEC Home values");
 				self.GridPower = parseFloat(data["GUI_GRID_POW"] * -1);
 		    	self.SolarPower = parseFloat(data["GUI_INVERTER_POWER"]);
                 self.HousePower = parseFloat(data["GUI_HOUSE_POW"]);
