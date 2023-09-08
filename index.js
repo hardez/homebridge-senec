@@ -1,6 +1,6 @@
 'use strict';
 var inherits = require('util').inherits;
-var request = require('request');
+var request = require('request').defaults({ rejectUnauthorized: false });
 var Service, Characteristic;
 
 module.exports = function (homebridge) {
@@ -125,7 +125,7 @@ function SENEC(log, config) {
 
 	function getReq(callback) {
         try{
-    	  request.post('http://'+self.hostname+'/lala.cgi', {
+    	  request.post('https://'+self.hostname+'/lala.cgi', {
     	    json: {
     	       ENERGY: {
                     "GUI_BAT_DATA_FUEL_CHARGE": "",
